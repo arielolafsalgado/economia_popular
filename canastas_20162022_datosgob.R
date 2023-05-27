@@ -35,3 +35,4 @@ canastas_formato <- canastas_20162022_datosgob %>%
     TRUE ~ 'N/A'
   ))
   
+
