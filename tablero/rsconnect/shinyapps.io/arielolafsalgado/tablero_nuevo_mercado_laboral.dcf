@@ -5,9 +5,9 @@ account: arielolafsalgado
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 8735122
-bundleId: 7034242
+bundleId: 7283468
 url: https://arielolafsalgado.shinyapps.io/tablero_nuevo_mercado_laboral/
-when: 1680289097.20818
-lastSyncTime: 1680289097.20819
+when: 1685478766.93266
+lastSyncTime: 1685478766.93267
 asMultiple: FALSE
 asStatic: FALSE

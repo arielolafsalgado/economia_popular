@@ -55,8 +55,8 @@ shinyServer(function(input, output) {
     
     individual_03.hoy %>% ungroup() %>%
       filter(
-        YEAR > input$slider_años[1],
-        YEAR < input$slider_años[2],
+        YEAR >= input$slider_años[1],
+        YEAR <= input$slider_años[2],
         across(input$variable_zona, ~.x %in% zonas),
         across(paste('EDAD',input$variable_edad,sep='_'), ~.x %in% edades)
       ) %>%
@@ -182,8 +182,8 @@ shinyServer(function(input, output) {
     
     individual_03.hoy %>%
       filter(
-        YEAR > input$slider_años_t2[1],
-        YEAR < input$slider_años_t2[2],
+        YEAR >= input$slider_años_t2[1],
+        YEAR <= input$slider_años_t2[2],
         across(input$variable_zona_t2, ~.x %in% zonas),
         across(paste('EDAD',input$variable_edad_t2,sep='_'), ~.x %in% edades)
       ) %>%
