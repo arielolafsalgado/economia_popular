@@ -188,8 +188,9 @@ shinyServer(function(input, output) {
         across(paste('EDAD',input$variable_edad_t2,sep='_'), ~.x %in% edades)
       ) %>%
       group_by_at(grouping_vars) %>%
+      filter(!is.na(situacion)) %>%
       summarise(
-        tasa_EP = sum(ECONOMIA_POPULAR_PONDIH[situacion %in% situaciones],na.rm=TRUE)/sum(ECONOMIA_POPULAR,na.rm=TRUE),
+        tasa_EP = sum(ECONOMIA_POPULAR_PONDIH[situacion %in% situaciones],na.rm=TRUE)/sum(ECONOMIA_POPULAR_PONDIH,na.rm=TRUE),
         tasa_OCU_NEP = sum(OCUPADES_NO_EP[situacion %in% situaciones],na.rm=TRUE)/sum(OCUPADES_NO_EP,na.rm=TRUE),
         tasa_OCU = sum((ECONOMIA_POPULAR_PONDIH + OCUPADES_NO_EP)[situacion %in% situaciones],na.rm=TRUE)/sum((ECONOMIA_POPULAR_PONDIH + OCUPADES_NO_EP),na.rm=TRUE)
       ) %>%
