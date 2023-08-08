@@ -5,9 +5,9 @@ account: equilab-data
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 9229525
-bundleId: 7544465
+bundleId: 7544675
 url: https://equilab-data.shinyapps.io/tablero_mercado_laboral/
-when: 1691509482.67801
-lastSyncTime: 1691509482.67802
+when: 1691512666.66598
+lastSyncTime: 1691512666.66602
 asMultiple: FALSE
 asStatic: FALSE

@@ -6,7 +6,7 @@ shinyUI(
   navbarPage("La Economía Popular",
              tabPanel("PRESENTACION", 
                       #primera pagina
-                      HTML("<h1><strong>Presentaci&oacute;n</strong></h1>
+                      mainPanel(HTML("<h1><strong>Presentaci&oacute;n</strong></h1>
   <h3 style='text-align: justify;'><span style='font-weight: 400;'><strong>La econom&iacute;a popular en el nuevo mercado de trabajo</strong>; es una iniciativa desarrollada por <strong>EquiLab</strong>, un conjunto de profesionales de provenientes de diferentes disciplinas y organizaciones, iniciativas colectivas y centros de estudio tales como <a href='https://sites.google.com/view/tallerdedatospopulares/inicio?authuser=0'>Taller de Datos Populares (TDDP)</a>, el <a href='https://www.ocepp.com/quienes-somos'>Observatorio de Coyuntura Econ&oacute;mica y Pol&iacute;ticas P&uacute;blicas (OCEPP)</a> y la <a href='https://www.facebook.com/enocepnacional/?locale=es_LA'> Escuela Nacional de Organización Comunitaria y Economía Popular (ENOCEP)</a> .&nbsp;</span>&nbsp;</h3>
     <p style='text-align: justify;'>&nbsp;</p>
       <ul style='text-align: justify;'>
@@ -28,7 +28,13 @@ shinyUI(
                           <p>&nbsp;</p>"
                       ),
                       #Recuadro 1: ¿Qué es la Economía Popular?
-                      
+                      h4(strong('Para más información:')),
+                                shiny::a(h4(strong("Informes OCCEP"), class = "btn btn-default action-button" , 
+                                            style = "fontweight:600"), target = "_blank",
+                                         href = "https://www.ocepp.com/economia-popular"),
+                                shiny::a(h4(strong("Formulario de contacto"), class = "btn btn-default action-button" , 
+                                            style = "fontweight:600"), target = "_blank",
+                                         href = "https://forms.gle/HChBpeEXJ52YWpFG8"),width=15),
                       mainPanel(HTML("<h1 style='text-align: justify;'><strong>&iquest;Qu&eacute; es la Econom&iacute;a Popular?</strong></h1>
   <h4 style='text-align: justify;'><span style='font-weight: 400;'>Tres aspectos centrales definen si una actividad se desarrolla en el marco de la EP: </span><span style='font-weight: 400;'><br /></span></h4>
     <ol style='text-align: justify;'>
@@ -47,7 +53,8 @@ shinyUI(
             <h4 style='text-align: justify;'><span style='font-weight: 400;'>Adem&aacute;s de los criterios &ldquo;objetivos&rdquo; que delimitan el sector, pueden destacarse caracter&iacute;sticas socioculturales que afectan transversalmente en mayor o menor grado a las personas que realizan actividades en el marco de la EP (aunque no refieran a aspectos espec&iacute;ficos de la misma). En forma muy sint&eacute;tica puede mencionarse la falta de reconocimiento institucional (informalidad de las actividades y de los espacios de trabajo), la inseguridad habitacional, la existencia de importantes grupos de poblaci&oacute;n migrante, entre otras. As&iacute;, la EP abarca un conjunto enormemente heterog&eacute;neo de actividades, con caracter&iacute;sticas muy dis&iacute;miles entre s&iacute;: la recolecci&oacute;n de residuos urbanos, la agricultura familiar, la comercializaci&oacute;n informal en la v&iacute;a p&uacute;blica y medios de transporte, la producci&oacute;n textil, y muchas otras ramas de actividad.</span></h4>
               <h4 style='text-align: justify;'><span style='font-weight: 400;'> La EP abarca un conjunto enormemente heterogéneo de actividades, con características muy disímiles entre sí: la recolección de residuos urbanos, la agricultura familiar, la comercialización informal en la vía pública y medios de transporte, la producción textil, y muchas otras ramas de actividad.</span></h4>
               <h4 style='text-align: justify;'><span style='font-weight: 400;'>Fuente: OCEPP (2021) La Econom&iacute;a Popular. Total de trabajadorxs, ingresos y transiciones laborales. <a href='https://www.ocepp.com/post/la-econom%C3%ADa-popular-total-de-trabajadorxs-ingresos-y-transiciones-laborales'>[Link]</a></span></h4>
-"),width = 6),
+"),
+                                width = 6),
                       
                       #Recuadro 2: ¿Quiénes somos?
                       mainPanel(HTML("<h2 style='font-weight: 400;'><strong>&iquest;Qui&eacute;nes somos?</strong></h2>
@@ -55,12 +62,14 @@ shinyUI(
     <p style='font-weight: 400;'><a href='https://sites.google.com/view/tallerdedatospopulares/inicio?authuser=0&amp;pli=1'>El Taller de Datos Populares (TDDP)</a>&nbsp;agrupa a graduades, docentes, investigadores y estudiantes de la Facultad de Ciencias Exactas y Naturales de la Universidad de Buenos Aires (FCEN-UBA) en&nbsp;un espacio de vinculaci&oacute;n para trabajar junto a cooperativas, movimientos sociales,&nbsp; agrupaciones ambientales, etc, generando herramientas y respuestas para aportar a problem&aacute;ticas sociales desde la Ciencia de Datos, la programaci&oacute;n y la tecnolog&iacute;a. El&nbsp;&ldquo;Tablero del nuevo mercado laboral argentino&rdquo;&nbsp;es uno de los proyectos que hemos desarrollado en vinculaci&oacute;n con el OCEPP y organizaciones sociales de la Econom&iacute;a Popular.&nbsp;</p>
       <p style='font-weight: 400;'><img src='https://github.com/ipatop/economia_popular/blob/main/tablero/logos/OCEPP.png?raw=true' srcset='https://static.wixstatic.com/media/54048a_ed2d21d85fe94a469cefc0b7cab738dc~mv2.png/v1/crop/x_1,y_17,w_799,h_208/fill/w_430,h_114,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/logo2.png' alt='logo2.png' width='177' height='47' /></p>
         <p style='font-weight: 400;'>El&nbsp;<a href='https://www.ocepp.com/'>OCEPP</a>&nbsp;es un espacio de economistas y profesionales de otras disciplinas que nos desempe&ntilde;amos tanto del &aacute;mbito acad&eacute;mico como t&eacute;cnico. Desde el OCEPP integramos la Fundaci&oacute;n Igualdad realizamos informes peri&oacute;dicos, capacitaciones, desarrollo de indicadores e informes sobre temas de Econom&iacute;a Popular, Desarrollo Econ&oacelute;mico y Macroeconom&iacute;a. En particular, el desarrollo de una&nbsp;<a href='https://www.ocepp.com/post/la-econom%C3%ADa-popular-total-de-trabajadorxs-ingresos-y-transiciones-laborales'>estimaci&oacute;n propia sobre el universo de la Econom&iacute;a Popular</a>, diversos&nbsp;<a href='https://www.ocepp.com/economia-popular'>documentos</a>&nbsp;que buscan conceptualizar este fen&oacute;meno, y el informe trimestral&nbsp;<a href='https://www.ocepp.com/post/monitor-de-la-economia-popular-agosto-2022'>&ldquo;Monitor de la Econom&iacute;a Popular&rdquo;</a>&nbsp;forman parte de los antecedentes e insumos en los que se basa el&nbsp;&ldquo;Tablero del nuevo mercado laboral argentino&rdquo;.&nbsp;</p>
-          <p style='font-weight: 400;'><img class='header_logo header-logo' src='https://github.com/ipatop/economia_popular/blob/main/tablero/logos/ENOCEPchico.jpg?raw=true' alt='' width='180' height='80' /><br />ENOCEP se fundó con el objetivo de fortalecer a los movimientos populares contribuyendo a la formación de trabajadores y trabajadoras de la economía popular, dirigentes y militantes.  Es una iniciativa de la Secretaría de Formación de la Unión de Trabajadores de la Economía Popular (UTEP) . Por las características del universo de trabajadores que representamos y las reivindicaciones mezclan atributos políticos y gremiales, por lo tanto el análisis y comprensión de las políticas públicas es fundamental a la hora de proponer e influir en la definición de políticas públicas. </p>
+          <p style='font-weight: 400;'><img class='header_logo header-logo' src='https://github.com/ipatop/economia_popular/blob/main/tablero/logos/ENOCEPchico.jpg?raw=true' alt='' width='180' height='80' /><br />ENOCEP se fundó con el objetivo de fortalecer a los movimientos populares contribuyendo a la formación de trabajadores y trabajadoras de la economía popular, dirigentes y militantes.  Es una iniciativa de la Secretaría de Formación de la Unión de Trabajadores de la Economía Popular (UTEP) . Por las características del universo de trabajadores que representamos y las reivindicaciones mezclan atributos políticos y gremiales, por lo tanto el análisis y comprensión de las políticas públicas es fundamental a la hora de proponer e influir en la definición de políticas públicas. </p>"),
+                                
+                                width=6)
   
-            <h4 style='font-weight: 400;'><span style='font-weight: 400;'>&iquest;Te interesa sumarte a la red? Escribinos!&nbsp;</span></h4>
-              <p style='font-weight: 400;'><span style='font-weight: 400;'><a href='mailto:observatoriocoyunturaeconomica@gmail.com'>observatoriocoyunturaeconomica@gmail.com</a>&nbsp;</span></p>
-                  <p style='font-weight: 400;'><span style='font-weight: 400;'><a href='mailto:tallerdedatospopulares@gmail.com'>tallerdedatospopulares@gmail.com</a>&nbsp;</span></p>"),width = 6),
-                      
+            # <h4 style='font-weight: 400;'><span style='font-weight: 400;'>&iquest;Te interesa sumarte a la red? Escribinos!&nbsp;</span></h4>
+            #   <p style='font-weight: 400;'><span style='font-weight: 400;'><a href='mailto:observatoriocoyunturaeconomica@gmail.com'>observatoriocoyunturaeconomica@gmail.com</a>&nbsp;</span></p>
+            #       <p style='font-weight: 400;'><span style='font-weight: 400;'><a href='mailto:tallerdedatospopulares@gmail.com'>tallerdedatospopulares@gmail.com</a>&nbsp;</span></p>"),width = 6),
+     
              ),
              
              tabPanel("La Economía Popular en el tiempo",
@@ -202,20 +211,20 @@ shinyUI(
                         mainPanel(
                           plotOutput("pobrezaEP_plot"),
                           # plotOutput("barrasEP_plot"),
-                          textOutput("plata_para_salir")
+                          # textOutput("plata_para_salir")
                         )
                       ),
-                      tabPanel("Informes y Contacto",
-                               
-                               mainPanel("Para ver todolos los informes accede a https://www.ocepp.com/economia-popular"),
-                               shiny::a(h4("Informes OCCEP", class = "btn btn-default action-button" , 
-                                           style = "fontweight:600"), target = "_blank",
-                                        href = "https://www.ocepp.com/economia-popular"),
-                               mainPanel("Para contactarnos escribí un mail a observatoriocoyunturaeconomica@gmail.com, tallerdedatospopulares@gmail.com, o accedé al siguient link: https://forms.gle/HChBpeEXJ52YWpFG8"),
-                               shiny::a(h4("Formulario de contacto", class = "btn btn-default action-button" , 
-                                           style = "fontweight:600"), target = "_blank",
-                                        href = "https://forms.gle/HChBpeEXJ52YWpFG8"))
-                      
+  #                     tabPanel("Informes y Contacto",
+  #                              
+  #                              # mainPanel("Para ver todolos los informes accede a https://www.ocepp.com/economia-popular"),
+  #                              shiny::a(h4("Informes OCCEP", class = "btn btn-default action-button" , 
+  #                                          style = "fontweight:600"), target = "_blank",
+  #                                       href = "https://www.ocepp.com/economia-popular"),
+  #                              # mainPanel("Para contactarnos escribí un mail a observatoriocoyunturaeconomica@gmail.com, tallerdedatospopulares@gmail.com, o accedé al siguient link: https://forms.gle/HChBpeEXJ52YWpFG8"),
+  #                              shiny::a(h4("Formulario de contacto", class = "btn btn-default action-button" , 
+  #                                          style = "fontweight:600"), target = "_blank",
+  #                                       href = "https://forms.gle/HChBpeEXJ52YWpFG8"))
+  #                     
              )
   )
 )
