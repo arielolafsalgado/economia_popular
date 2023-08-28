@@ -3,11 +3,11 @@ library(shiny)
 
 # Define UI for application that draws a histogram
 shinyUI(
-  navbarPage("La Economía Popular",
+  navbarPage("EquiLab",
              tabPanel("PRESENTACION", 
                       #primera pagina
                       mainPanel(HTML("<h1><strong>Presentaci&oacute;n</strong></h1>
-  <h3 style='text-align: justify;'><span style='font-weight: 400;'><strong>La econom&iacute;a popular en el nuevo mercado de trabajo</strong>; es una iniciativa desarrollada por <strong>EquiLab</strong>, un conjunto de profesionales de provenientes de diferentes disciplinas y organizaciones, iniciativas colectivas y centros de estudio tales como <a href='https://sites.google.com/view/tallerdedatospopulares/inicio?authuser=0'>Taller de Datos Populares (TDDP)</a>, el <a href='https://www.ocepp.com/quienes-somos'>Observatorio de Coyuntura Econ&oacute;mica y Pol&iacute;ticas P&uacute;blicas (OCEPP)</a> y la <a href='https://www.facebook.com/enocepnacional/?locale=es_LA'> Escuela Nacional de Organización Comunitaria y Economía Popular (ENOCEP)</a> .&nbsp;</span>&nbsp;</h3>
+  <h3 style='text-align: justify;'><span style='font-weight: 400;'>La economía popular (EP) en el nuevo mercado de trabajo es una iniciativa desarrollada por EquiLab en el marco del Proyecto \"Tablero del nuevo mercado laboral argentino\". Quienes integramos <strong>Equilab</strong> somos un conjunto de profesionales de provenientes de diferentes disciplinas y organizaciones, iniciativas colectivas y centros de estudio tales como <a href='https://sites.google.com/view/tallerdedatospopulares/inicio?authuser=0'>Taller de Datos Populares (TDDP)</a>, el <a href='https://www.ocepp.com/quienes-somos'>Observatorio de Coyuntura Econ&oacute;mica y Pol&iacute;ticas P&uacute;blicas (OCEPP)</a> y la <a href='https://www.facebook.com/enocepnacional/?locale=es_LA'> Escuela Nacional de Organización Comunitaria y Economía Popular (ENOCEP)</a> .&nbsp;</span>&nbsp;</h3>
     <p style='text-align: justify;'>&nbsp;</p>
       <ul style='text-align: justify;'>
         <li style='font-weight: 400;'>
@@ -24,7 +24,7 @@ shinyUI(
                       <h4><span style='font-weight: 400;'>La </span><strong>enorme magnitud y relativa estabilidad de este segmento ocupacional</strong><span style='font-weight: 400;'> debe alertar acerca de la necesidad de implementar pol&iacute;ticas p&uacute;blicas espec&iacute;ficamente dise&ntilde;adas para afrontar los desaf&iacute;os del sector.</span></h4>
                         </li>
                         </ul>
-                        <h4 style='text-align: justify;'><br /><strong>El presente Tablero tiene el objetivo de poner a disposici&oacute;n</strong><span style='font-weight: 400;'> de investigadorxs de diferentes disciplinas, profesionales t&eacute;cnicos y hacedores de pol&iacute;ticas p&uacute;blicas (y de todxs aquellos interesadxs en la tem&aacute;tica) </span><strong>datos actualizados, estimaciones y proyecciones</strong><span style='font-weight: 400;'> que puedan ser de utilidad para analizar el universo de la EP, sus caracter&iacute;sticas, las especificidades de este sector y la situaci&oacute;n de su inserci&oacute;n en el mercado de trabajo argentino actual. &nbsp;</span></h4>
+                        <h4 style='text-align: justify;'><br /><strong>El presente Tablero</strong> tiene el objetivo de poner a disposición de investigadorxs de diferentes disciplinas, profesionales técnicos y hacedores de políticas públicas (y de todxs aquellos interesadxs en la temática) datos actualizados, estimaciones y proyecciones que puedan ser de utilidad para analizar el mercado de trabajo en Argentina, incluyendo al universo de la Economía Popular, sus características, y la situación de su inserción en el mercado laboral actual.</h4>
                           <p>&nbsp;</p>"
                       ),
                       #Recuadro 1: ¿Qué es la Economía Popular?
@@ -72,7 +72,7 @@ shinyUI(
      
              ),
              
-             tabPanel("La Economía Popular en el tiempo",
+             tabPanel("La EP en el mercado de trabajo",
                       
                       # Sidebar with a slider input for number of bins
                       sidebarLayout(
