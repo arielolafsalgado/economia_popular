@@ -181,23 +181,25 @@ shinyServer(function(input, output) {
     grouping_vars <- genera_grouping_vars_pobrezaEP_plot(input)
     
     individual_03.hoy %>%
+      filter(!is.na(situacion)) %>%
       filter(
         YEAR >= input$slider_años_t2[1],
         YEAR <= input$slider_años_t2[2],
         across(input$variable_zona_t2, ~.x %in% zonas),
         across(paste('EDAD',input$variable_edad_t2,sep='_'), ~.x %in% edades)
       ) %>%
+      group_by(YEAR,TRIMESTER) %>%
+      mutate(POB_TOT = sum(POBLACION_PONDIH,na.rm=TRUE)) %>%
       group_by_at(grouping_vars) %>%
-      filter(!is.na(situacion)) %>%
       summarise(
-        tasa_EP = sum(ECONOMIA_POPULAR_PONDIH[situacion %in% situaciones],na.rm=TRUE)/sum(ECONOMIA_POPULAR_PONDIH,na.rm=TRUE),
-        tasa_OCU_NEP = sum(OCUPADES_NO_EP[situacion %in% situaciones],na.rm=TRUE)/sum(OCUPADES_NO_EP,na.rm=TRUE),
-        tasa_OCU = sum((ECONOMIA_POPULAR_PONDIH + OCUPADES_NO_EP)[situacion %in% situaciones],na.rm=TRUE)/sum((ECONOMIA_POPULAR_PONDIH + OCUPADES_NO_EP),na.rm=TRUE)
+        tasa_EP = sum(ECONOMIA_POPULAR_PONDIH[situacion %in% situaciones],na.rm=TRUE)/POB_TOT,
+        tasa_OCU_NEP = sum(OCUPADES_NO_EP_PONDIH[situacion %in% situaciones],na.rm=TRUE)/POB_TOT,
+        tasa_PEI = sum((POBLACION_PONDIH-ECONOMIA_POPULAR_PONDIH-OCUPADES_NO_EP_PONDIH)[situacion %in% situaciones],na.rm=TRUE)/POB_TOT
       ) %>%
-      mutate(FECHA = as.Date(paste(YEAR,4*TRIMESTER,'1',sep='-'))) %>%
+      mutate(FECHA = as.Date(paste(YEAR,3*TRIMESTER,'1',sep='-'))) %>%
       pivot_longer(cols = c(tasa_EP,
                             tasa_OCU_NEP,
-                            tasa_OCU),
+                            tasa_PEI),
                    names_to = 'tasa_tipo',
                    values_to = 'tasa') %>%
       drop_na() %>% 
@@ -206,7 +208,7 @@ shinyServer(function(input, output) {
         tasa_tipo = case_when(
           str_detect(tasa_tipo,'OCU_NEP') ~ 'OCUPADES NO EP',
           str_detect(tasa_tipo,'EP') ~ 'EP',
-          TRUE ~ 'POB. TOT.')
+          TRUE ~ 'PEI')
       )
   })
   
@@ -217,10 +219,11 @@ shinyServer(function(input, output) {
     
     dataset_p2() %>%
       ggplot(aes_plot) +
-      geom_point() +
-      geom_line()+
-      scale_color_brewer(name = 'OCUPACION',palette="Set2")+
-      ylab('TASAS') +
+      # geom_point() +
+      # geom_line()+
+      geom_area()+
+      scale_fill_brewer(name = 'GRUPO',palette="Set2") +
+      ylab('Porcentaje') +
       theme_light() +
       theme(axis.title = element_text(size=15),
             axis.text = element_text(size=12)) +
@@ -231,7 +234,8 @@ shinyServer(function(input, output) {
         date_minor_breaks = '3 months',
         labels = function(x) format(x,'%Y-%m')
       ) +
-      labs(title = paste0("Tasas de ",input$tasa_tipo, " separando por ",input$variable_zona_t2),caption  = "Citar estos datos como: OCEPP y TDDP (2022). Tablero del nuevo mercado laboral argentino.")
+      labs(title = paste0("Porcentaje de ",input$tasa_tipo, " en [",paste(unlist(ifelse(all(is.null(input$zonas_t2)),'GENERAL',list(input$zonas_t2))),collapse=','),"]"),caption  = "Citar estos datos como: OCEPP y TDDP (2022). Tablero del nuevo mercado laboral argentino.") + 
+      guides(fill = guide_legend(reverse=TRUE))
       
   })
 
@@ -325,4 +329,126 @@ shinyServer(function(input, output) {
     content = function(file) write.csv(dataset_p2(),file,row.names=FALSE)
   )
   
+  
+  #############################################
+  ############ TERCER PANEL ###################
+  #############################################
+  
+  output$edades_posibles_t3 <- renderUI({
+    opciones <- individual_03.hoy %>% 
+      select_at(paste('EDAD',input$variable_edad_t3,sep='_')) %>%
+      unique %>% unlist %>% as.character %>% discard(is.na)
+    
+    selectInput(
+      inputId = "edades_posibles_t3",
+      label = "Edades consideradas",
+      choices = opciones,
+      multiple = TRUE,
+      selected = c() )
+  })
+  
+  
+  output$variables_posibles_color_t3 <- renderUI({
+    opciones <- dataset_p3() %>% 
+      colnames() %>% setdiff(c('lon','lat','geometry',input$variable_zona_t3))
+    
+      
+    selectInput(
+      inputId = "variable_color_t3",
+      label = "Variable para color",
+      choices = opciones,
+      multiple = FALSE,
+      selected = opciones[1] )
+  })
+  
+  output$variables_posibles_size_t3 <- renderUI({
+    opciones <- dataset_p3() %>% 
+      colnames() %>% setdiff(c('lon','lat','geometry',input$variable_zona_t3))
+    
+    
+    selectInput(
+      inputId = "variable_size_t3",
+      label = "Variable para el radio del circulo",
+      choices = opciones,
+      multiple = FALSE,
+      selected = opciones[1] )
+  })
+  geometrias <- reactive({
+    if(input$variable_zona_t3 == 'REGION'){
+      st_read('data/regiones.geojson')
+    }else{
+      st_read('data/aglomerados.geojson')
+    }
+  })
+  
+  dataset_p3 <- reactive({
+    
+    edades <- unique(input$edades_t3)
+    if( length(edades) == 0 ) 
+      edades <- individual_03.hoy %>% 
+      select_at(paste('EDAD',input$variable_edad_t3,sep='_')) %>%
+      unique %>% unlist 
+    
+
+    left_join(
+      geometrias(),
+      individual_03.hoy %>%
+        mutate(YEAR.TRIM = as.numeric(paste(YEAR,TRIMESTER,sep='.'))) %>%
+        filter(
+          YEAR.TRIM >= as.numeric(input$slider_años_t3[1]),
+          YEAR.TRIM <= as.numeric(input$slider_años_t3[2]),
+          across(paste('EDAD',input$variable_edad_t3,sep='_'), ~.x %in% edades),
+          SEXO %in% unlist(ifelse(input$genero_t3 == 'AMBOS', list(c('VARON','MUJER')), input$genero_t3))
+        ) %>%
+        group_by_at(input$variable_zona_t3) %>%
+        drop_na() %>%
+        summarise(
+          ECONOMIA_POPULAR = mean(ECONOMIA_POPULAR),
+          RESTO_CUENTAPROPISTAS = mean(RESTO_CUENTAPROPISTAS),
+          ASALARIADOS_REGISTRADOS = mean(ASALARIADOS_REGISTRADOS),
+          ASALARIADOS_NOREGISTRADOS = mean(ASALARIADOS_NOREGISTRADOS),
+          PATRONES = mean(PATRONES),
+          DESOCUPADES = mean(DESOCUPADES),
+          PEA = mean(ECONOMICAMENTE_ACTIVES)
+        ),
+      by = input$variable_zona_t3) 
+  })
+  
+  output$mapa_p3 <- renderLeaflet({
+    leaflet() %>%
+      addTiles('https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{-y}.png', 
+               attribution = '<a href="http://leafletjs.com" title="<a href="http://www.ign.gob.ar/AreaServicios/Argenmap/IntroduccionV2" target="_blank">Instituto Geográfico Nacional</a> + <a href="http://www.osm.org/copyright" target="_blank">OpenStreetMap</a>') %>%
+      setView(-60,-40, zoom = 3)
+  })
+  
+  colorPal <- reactive({
+    x <- as.data.frame(dataset_p3())[[ifelse(is.null(input$variable_color_t3),'ECONOMIA_POPULAR',input$variable_color_t3)]]
+    colorNumeric(c('blue','red'),x)
+  })
+  
+
+  observe({
+    x <- as.data.frame(dataset_p3())[[ifelse(is.null(input$variable_color_t3),'ECONOMIA_POPULAR',input$variable_color_t3)]]
+    y <- as.data.frame(dataset_p3())[[ifelse(is.null(input$variable_size_t3),'ECONOMIA_POPULAR',input$variable_size_t3)]]
+    if(input$mapa_pp == 'Circulos' & input$variable_zona_t3 == 'AGLOMERADO'){
+      leafletProxy('mapa_p3') %>%
+        clearShapes() %>%
+        clearMarkers() %>%
+        clearControls() %>%
+        addCircleMarkers(data=as.data.frame(dataset_p3()),lng= ~lon,lat = ~lat,
+                         color = colorPal()(x),
+                         radius = scales::rescale(y,c(1,10))) %>%
+        addLegend('topright',pal = colorPal(),values = x,title = ifelse(is.null(input$variable_color_t3),'ECONOMIA_POPULAR',input$variable_color_t3)) %>%
+        addCircleLegend(position='topright',range = scales::rescale(y,c(1,10)), scaling_fun = function(x) x)
+    }else{
+      leafletProxy('mapa_p3') %>%
+        clearShapes() %>%
+        clearMarkers() %>%
+        clearControls() %>%
+        addPolygons(data=dataset_p3(),
+                    color = colorPal()(x)) %>%
+        addLegend('topright',pal = colorPal(),values = x,title = ifelse(is.null(input$variable_color_t3),'ECONOMIA_POPULAR',input$variable_color_t3)) 
+    }
+
+  })
 })

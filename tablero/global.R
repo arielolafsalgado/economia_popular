@@ -2,7 +2,9 @@
 library(shiny)
 library(tidyverse)
 library(lemon)
-
+library(leaflet)
+library(leaflegend)
+library(sf)
 # Carga del dataset
 load('data/base_ep_resumen.RData')
 

@@ -1,0 +1,12 @@
+name: tablero
+title: tablero
+username: equilab-data
+account: equilab-data
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 11270565
+bundleId: 8273382
+url: https://equilab-data.shinyapps.io/tablero/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
