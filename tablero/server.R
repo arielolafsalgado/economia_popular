@@ -111,12 +111,22 @@ shinyServer(function(input, output) {
       scale_color_discrete(labels = function(x) ocupa_labels[x]) +
       scale_shape(name = 'GÉNERO') +
       scale_x_date(
-        date_breaks = '1 year',
-        date_minor_breaks = '3 months',
-        labels = function(x) format(x,'%Y-%m')
+        name = '',
+        date_breaks = '6 months',
+        labels = function(x) {
+          xy <- as.numeric(format(x,'%Y'))
+          xm <- as.numeric(format(x,'%m'))
+          xtri <-case_when(
+            xm <= 3 ~ 'I',
+            xm <= 6 ~ 'II',
+            xm <= 9 ~ 'III',
+            TRUE ~ 'IV'
+          )
+          paste(xy,xtri,sep='-')
+        }
       ) +
       scale_y_continuous(name = ifelse(input$usar_porcentaje_pea,'% PEA','Millones de personas')) +
-      theme(axis.text.x = element_text(angle = 90))
+      theme(axis.text.x = element_text(angle = 90,vjust=0.5))
     
 
       
