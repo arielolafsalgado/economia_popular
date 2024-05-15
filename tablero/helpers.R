@@ -1,6 +1,7 @@
+options(dplyr.summarise.inform = FALSE)
 ## FUNCIONES PARA PROCESAR DATOS
 
-genera_resumen <- function(df){
+genera_resumen_old <- function(df){
   #'@param df Un dataframe, eventualmente agrupado por subgrupos
   #'@returns Un dataframe resumido, con las categorias POBLACION, ECONOMICAMENTE_ACTIVES, CUENTAPROPISTAS_PROFESIONALES, CUENTAPROPISTAS_NO_PROFESIONALES.
   #'@details El objetivo de esta funcion es agilizar la escritura de la preparación de resumenes que muestren la evolución por año y trimestre de las poblaciones de interés. Pasandole un tibble agrupado, se puede ver la evolución de subgrupos de poblaciones en términos de las variables de la EP.
@@ -8,7 +9,7 @@ genera_resumen <- function(df){
     mutate(ES_EP = ES_CUENTAPROPISTA_NO_PROFESIONAL | ES_TFSR) %>%
     summarise(
       'POBLACION' = sum( PONDERA ), # Aca deberia ir PONDIH
-      'POBLACION_PONDIH' = sum( PONDERA ), # Aca deberia ir PONDIH
+      'POBLACION_PONDIH' = sum( PONDIH ), # Aca deberia ir PONDIH
       'OCUPADES' = sum(
         PONDERA * 
           (ESTADO == 'OCUPADE'),na.rm=TRUE),
@@ -20,6 +21,9 @@ genera_resumen <- function(df){
           (ESTADO == 'OCUPADE' & !ES_EP),na.rm=TRUE),
       'DESOCUPADES' =  sum(
         PONDERA * 
+          (ESTADO == 'DESOCUPADE'),na.rm=TRUE),
+      'DESOCUPADES_PONDIH' =  sum(
+        PONDIH * 
           (ESTADO == 'DESOCUPADE'),na.rm=TRUE),
       'ECONOMICAMENTE_ACTIVES' = sum(
         PONDERA * 
@@ -43,18 +47,84 @@ genera_resumen <- function(df){
         PONDERA * (
           CATEGORIA_OCUPACION == 'ASALARIADE' & REGISTRACION == 1),na.rm=TRUE
       ),
+      "ASALARIADOS_REGISTRADOS_PONDIH" = sum(
+        PONDIH * (
+          CATEGORIA_OCUPACION == 'ASALARIADE' & REGISTRACION == 1),na.rm=TRUE
+      ),
       "ASALARIADOS_NOREGISTRADOS" = sum(
         PONDERA * (
+          CATEGORIA_OCUPACION == 'ASALARIADE' & REGISTRACION == 2),na.rm=TRUE
+      ),
+      "ASALARIADOS_NOREGISTRADOS_PONDIH" = sum(
+        PONDIH * (
           CATEGORIA_OCUPACION == 'ASALARIADE' & REGISTRACION == 2),na.rm=TRUE
       ),
       "PATRONES" = sum(
         PONDERA * (
           CATEGORIA_OCUPACION == 'PATRON'), na.rm=TRUE
       ),
+      "PATRONES_PONDIH" = sum(
+        PONDIH * (
+          CATEGORIA_OCUPACION == 'PATRON'), na.rm=TRUE
+      ),
       'ECONOMIA_POPULAR' = sum(ES_EP*PONDERA,na.rm=TRUE),
       'ECONOMIA_POPULAR_PONDIH' = sum(ES_EP*PONDIH,na.rm=TRUE),
       "RESTO_CUENTAPROPISTAS" = CUENTAPROPISTAS - ECONOMIA_POPULAR,
       "RESTO_CUENTAPROPISTAS_PONDIH" = CUENTAPROPISTAS_PONDIH - ECONOMIA_POPULAR_PONDIH,
+      'IT_ECONOMIA_POPULAR' = sum(ES_EP*POND_ING_TOT_IND*TOTAL_INGRESO_INDIVIDUAL,na.rm=TRUE),
+      'IL_ECONOMIA_POPULAR' = sum(ES_EP*POND_ING_OCUP_PRINC*INGRESOS_OCUP_PPAL,na.rm=TRUE),
+      'CB_ECONOMIA_POPULAR' = sum(ES_EP*POND_ING_TOT_IND*CBT_hogar,na.rm=TRUE)
+    ) %>% 
+    mutate('INL_ECONOMIA_POPULAR' = IT_ECONOMIA_POPULAR-IL_ECONOMIA_POPULAR) %>%
+    return()
+}
+
+# Hace funcion en forma que reciba columna como SEGMENTO_LABORAL:
+# EP, PRIVADO_REGISTRADO, PRIVADO_NOREGISTRADO, PUBLICO_RE/NOREG, 
+
+
+genera_resumen <- function(df){
+  #'@param df Un dataframe, eventualmente agrupado por subgrupos
+  #'@returns Un dataframe resumido, con las categorias POBLACION, ECONOMICAMENTE_ACTIVES, CUENTAPROPISTAS_PROFESIONALES, CUENTAPROPISTAS_NO_PROFESIONALES.
+  #'@details El objetivo de esta funcion es agilizar la escritura de la preparación de resumenes que muestren la evolución por año y trimestre de las poblaciones de interés. Pasandole un tibble agrupado, se puede ver la evolución de subgrupos de poblaciones en términos de las variables de la EP.
+  df %>%
+    mutate(
+      ES_CUENTAPROPISTA_NO_PROFESIONAL = CATEGORIA_OCUPACION == 'CUENTAPROPISTA' & !ES_PROFESIONAL,
+      ES_TFSR = CATEGORIA_OCUPACION == 'TRABAJADORE FLIAR S.R.',
+      ES_OCU = ESTADO == 'OCUPADE',
+      ES_DESOCU = ESTADO == 'DESOCUPADE',
+      ES_PEA = ES_OCU | ES_DESOCU,
+      ES_EP = (ES_CUENTAPROPISTA_NO_PROFESIONAL | ES_TFSR),
+      ES_ASALREG = CATEGORIA_OCUPACION == 'ASALARIADE' & REGISTRACION == 1,
+      ES_ASALNREG = CATEGORIA_OCUPACION == 'ASALARIADE' & REGISTRACION == 2,
+      ES_PATRON = CATEGORIA_OCUPACION == 'PATRON',
+      ES_CUENTAPROP = CATEGORIA_OCUPACION == 'CUENTAPROPISTA'
+    ) %>%
+    summarise(
+      'POBLACION' = sum( PONDERA ), 
+      'OCUPADES' = sum( PONDERA * ES_OCU,na.rm=TRUE),
+      'OCUPADES_NO_EP' = sum( PONDERA * (ES_OCU & !ES_EP),na.rm=TRUE),
+      'DESOCUPADES' =  sum( PONDERA * ES_DESOCU ,na.rm=TRUE),
+      'ECONOMICAMENTE_ACTIVES' = sum( PONDERA * ES_PEA,na.rm=TRUE),
+      'ECONOMICAMENTE_INACTIVES' = sum( PONDERA * !ES_PEA,na.rm=TRUE),
+      'CUENTAPROPISTAS' = sum( PONDERA * ES_CUENTAPROP,na.rm=TRUE),
+      "ASALARIADOS_REGISTRADOS" = sum( PONDERA * ES_ASALREG,na.rm=TRUE),
+      "ASALARIADOS_NOREGISTRADOS" = sum( PONDERA * ES_ASALNREG,na.rm=TRUE),
+      "PATRONES" = sum(PONDERA * ES_PATRON, na.rm=TRUE),
+      'ECONOMIA_POPULAR' = sum(ES_EP*PONDERA,na.rm=TRUE),
+      "RESTO_CUENTAPROPISTAS" = CUENTAPROPISTAS - ECONOMIA_POPULAR,
+      'POBLACION_PONDIH' = sum( PONDIH ), 
+      'OCUPADES_PONDIH' = sum( PONDIH * ES_OCU,na.rm=TRUE),
+      'OCUPADES_NO_EP_PONDIH' = sum( PONDIH * (ES_OCU & !ES_EP),na.rm=TRUE),
+      'DESOCUPADES_PONDIH' =  sum( PONDIH * ES_DESOCU ,na.rm=TRUE),
+      'ECONOMICAMENTE_ACTIVES_PONDIH' = sum( PONDIH * ES_PEA,na.rm=TRUE),
+      'ECONOMICAMENTE_INACTIVES_PONDIH' = sum( PONDIH * !ES_PEA,na.rm=TRUE),
+      'CUENTAPROPISTAS_PONDIH' = sum( PONDIH * ES_CUENTAPROP,na.rm=TRUE),
+      "ASALARIADOS_REGISTRADOS_PONDIH" = sum( PONDERA * ES_ASALREG,na.rm=TRUE),
+      "ASALARIADOS_NOREGISTRADOS_PONDIH" = sum( PONDIH * ES_ASALNREG,na.rm=TRUE),
+      "PATRONES_PONDIH" = sum(PONDIH * ES_PATRON, na.rm=TRUE),
+      'ECONOMIA_POPULAR_PONDIH' = sum(ES_EP*PONDIH,na.rm=TRUE),
+      "RESTO_CUENTAPROPISTAS_PONDIH" = sum( PONDIH * (ES_CUENTAPROP & !ES_EP),na.rm=TRUE),
       'IT_ECONOMIA_POPULAR' = sum(ES_EP*POND_ING_TOT_IND*TOTAL_INGRESO_INDIVIDUAL,na.rm=TRUE),
       'IL_ECONOMIA_POPULAR' = sum(ES_EP*POND_ING_OCUP_PRINC*INGRESOS_OCUP_PPAL,na.rm=TRUE),
       'CB_ECONOMIA_POPULAR' = sum(ES_EP*POND_ING_TOT_IND*CBT_hogar,na.rm=TRUE)

@@ -152,14 +152,6 @@ individual_03.hoy <-
     str_ends(CODIGO_OCUPACION, "[1]") ~ TRUE,
     TRUE ~ NA
   )) %>%
-  mutate(ES_CUENTAPROPISTA_NO_PROFESIONAL = case_when(
-    CATEGORIA_OCUPACION == 'CUENTAPROPISTA' & !ES_PROFESIONAL ~ TRUE,
-    TRUE ~ FALSE
-  )) %>% 
-  mutate(ES_TFSR = case_when(
-    CATEGORIA_OCUPACION == 'TRABAJADORE FLIAR S.R.' ~ TRUE,
-    TRUE ~ FALSE
-  )) %>% 
   mutate(EDAD_QUINQUENIO = case_when(
     EDAD < 0 ~ NA_character_,
     EDAD < 5 ~ "0-5",

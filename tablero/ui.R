@@ -2,7 +2,6 @@
 library(shiny)
 library(shinyWidgets)
 
-# Define UI for application that draws a histogram
 shinyUI(
   navbarPage(
     title = "EquiLab",
@@ -112,7 +111,7 @@ shinyUI(
                       label = 'Rango de años',
                       min = 2003, 
                       max = 2024, 
-                      value = c(2003, 2022),
+                      value = c(2003, 2024),
                       step = 1,
                       sep = ''),
           selectInput(
@@ -155,16 +154,26 @@ shinyUI(
                  sliderInput("slider_años_t2", 
                              label = 'Rango de años',
                              min = 2016, 
-                             max = 2022, 
-                             value = c(2016, 2022),
+                             max = 2024, 
+                             value = c(2016, 2024),
                              step = 1,
                              sep = ''),
                  checkboxGroupInput("ocupaciones_t2", 
-                                    "¿Separar por ocupación?",
-                                    choiceNames = c("OCUPADES NO EP", 
-                                                    "PEI"),
-                                    choiceValues = c("tasa_OCU_NEP",
-                                                     "tasa_PEI")
+                                    "CATEGORIAS OCUPACIONALES",
+                                    choiceNames = c("OCUPADOS (NO EP)",
+                                                    "CUENTAPROPISTAS (NO EP)",
+                                                    "ASALARIADOS REGISTRADOS",
+                                                    "ASALARIADOS NO REGISTRADOS",
+                                                    "PATRONES",
+                                                    "DESOCUPADOS",
+                                                    "ECONOMICAMENTE INACTIVOS"),
+                                    choiceValues = c("OCUPADES_NO_EP_PONDIH",
+                                                     "RESTO_CUENTAPROPISTAS_PONDIH",
+                                                     "ASALARIADOS_REGISTRADOS_PONDIH",
+                                                     "ASALARIADOS_NOREGISTRADOS_PONDIH",
+                                                     "PATRONES_PONDIH",
+                                                     "DESOCUPADES_PONDIH",
+                                                     "ECONOMICAMENTE_INACTIVES_PONDIH")
                  ),
                  selectInput(
                    inputId = "variable_zona_t2",
