@@ -394,7 +394,7 @@ shinyServer(function(input, output) {
   output$variables_posibles_color_t3 <- renderUI({
     opciones <- dataset_p3() %>% 
       colnames() %>% setdiff(c('lon','lat','geometry',input$variable_zona_t3))
-    
+    names(opciones) <- str_replace_all(opciones,'_',' ')
       
     selectInput(
       inputId = "variable_color_t3",
@@ -473,6 +473,7 @@ shinyServer(function(input, output) {
   observe({
     x <- as.data.frame(dataset_p3())[[ifelse(is.null(input$variable_color_t3),'ECONOMIA_POPULAR',input$variable_color_t3)]]
     y <- as.data.frame(dataset_p3())[[ifelse(is.null(input$variable_size_t3),'ECONOMIA_POPULAR',input$variable_size_t3)]]
+    titulo <- ifelse(is.null(input$variable_color_t3),'ECONOMIA POPULAR',str_replace_all(input$variable_color_t3,'_',' ')) 
     if(input$mapa_pp == 'Circulos' & input$variable_zona_t3 == 'AGLOMERADO'){
       leafletProxy('mapa_p3') %>%
         clearShapes() %>%
@@ -481,8 +482,9 @@ shinyServer(function(input, output) {
         addCircleMarkers(data=as.data.frame(dataset_p3()),lng= ~lon,lat = ~lat,
                          color = colorPal()(x),
                          radius = scales::rescale(y,c(1,10))) %>%
-        addLegend('topright',pal = colorPal(),values = x,title = ifelse(is.null(input$variable_color_t3),'ECONOMIA_POPULAR',input$variable_color_t3)) #%>%
-        #addCircleLegend(position='topright',range = scales::rescale(y,c(1,10)), scaling_fun = function(x) x)
+        addLegend('topright',pal = colorPal(),values = x,title = titulo) #%>%
+        # addCircleLegend(position='topright',range = scales::rescale(y,c(1,10)), scaling_fun = function(x) x)
+        
     }else{
       leafletProxy('mapa_p3') %>%
         clearShapes() %>%
@@ -490,7 +492,7 @@ shinyServer(function(input, output) {
         clearControls() %>%
         addPolygons(data=dataset_p3(),
                     color = colorPal()(x)) %>%
-        addLegend('topright',pal = colorPal(),values = x,title = ifelse(is.null(input$variable_color_t3),'ECONOMIA_POPULAR',input$variable_color_t3)) 
+        addLegend('topright',pal = colorPal(),values = x,title = titulo) 
     }
 
   })

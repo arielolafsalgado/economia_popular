@@ -219,7 +219,7 @@ shinyUI(
                       choices = c(sapply(2016:2022,function(x) paste(x,1:4,sep='.'))),
                       selected = c('2022.1','2022.2')),
           uiOutput("variables_posibles_color_t3"),
-          uiOutput("variables_posibles_size_t3"),
+          # uiOutput("variables_posibles_size_t3"),
           selectInput(
             inputId = "variable_zona_t3",
             label = "Tipo de zonas",
