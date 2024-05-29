@@ -38,100 +38,104 @@ shinyServer(function(input, output) {
   })
   
   dataset_p1 <- reactive({
-    zonas <- unique(input$zonas)
-    if( length(zonas) == 0 ) 
-      zonas <- individual_03.hoy %>% 
-        select_at(input$variable_zona) %>%
+    if(input$paneles == 'mercado_laboral'){
+      zonas <- unique(input$zonas)
+      if( length(zonas) == 0 ) 
+        zonas <- individual_03.hoy %>% 
+          select_at(input$variable_zona) %>%
+          unique %>% unlist 
+      
+      edades <- unique(input$edades)
+      if( length(edades) == 0 ) 
+        edades <- individual_03.hoy %>% 
+        select_at(paste('EDAD',input$variable_edad,sep='_')) %>%
         unique %>% unlist 
-    
-    edades <- unique(input$edades)
-    if( length(edades) == 0 ) 
-      edades <- individual_03.hoy %>% 
-      select_at(paste('EDAD',input$variable_edad,sep='_')) %>%
-      unique %>% unlist 
-    
-    grouping_vars <- genera_grouping_vars_cantTrabEP_plot(input)
-    
-    
-    individual_03.hoy %>% ungroup() %>%
-      filter(
-        YEAR >= input$slider_años[1],
-        YEAR <= input$slider_años[2],
-        across(input$variable_zona, ~.x %in% zonas),
-        across(paste('EDAD',input$variable_edad,sep='_'), ~.x %in% edades)
-      ) %>%
-      filter(SEXO != 'N/A') %>%
-      group_by_at(grouping_vars) %>%
-      summarise(
-        ECONOMIA_POPULAR = sum(ECONOMIA_POPULAR),
-        RESTO_CUENTAPROPISTAS = sum(RESTO_CUENTAPROPISTAS),
-        ASALARIADOS_REGISTRADOS = sum(ASALARIADOS_REGISTRADOS),
-        ASALARIADOS_NOREGISTRADOS = sum(ASALARIADOS_NOREGISTRADOS),
-        PATRONES = sum(PATRONES),
-        DESOCUPADES = sum(DESOCUPADES),
-        PEA = sum(ECONOMICAMENTE_ACTIVES)
-      ) %>% 
-      pivot_longer(cols = c(
-        'ECONOMIA_POPULAR',
-        'RESTO_CUENTAPROPISTAS',
-        'ASALARIADOS_REGISTRADOS',
-        'ASALARIADOS_NOREGISTRADOS',
-        'PATRONES',
-        'DESOCUPADES'),
-        names_to = 'OCUPACIONES',
-        values_to = 'PERSONAS') %>% 
-      ungroup() %>%
-      filter(OCUPACIONES %in% c('ECONOMIA_POPULAR',input$ocupaciones)) %>%
-      mutate(PORC_PEA = PERSONAS/PEA*100) %>%
-      mutate(FECHA = as.Date(paste(YEAR,3*TRIMESTER,1,sep='-')))
+      
+      grouping_vars <- genera_grouping_vars_cantTrabEP_plot(input)
+      
+      
+      individual_03.hoy %>% ungroup() %>%
+        filter(
+          YEAR >= input$slider_años[1],
+          YEAR <= input$slider_años[2],
+          across(input$variable_zona, ~.x %in% zonas),
+          across(paste('EDAD',input$variable_edad,sep='_'), ~.x %in% edades)
+        ) %>%
+        filter(SEXO != 'N/A') %>%
+        group_by_at(grouping_vars) %>%
+        summarise(
+          ECONOMIA_POPULAR = sum(ECONOMIA_POPULAR),
+          RESTO_CUENTAPROPISTAS = sum(RESTO_CUENTAPROPISTAS),
+          ASALARIADOS_REGISTRADOS = sum(ASALARIADOS_REGISTRADOS),
+          ASALARIADOS_NOREGISTRADOS = sum(ASALARIADOS_NOREGISTRADOS),
+          PATRONES = sum(PATRONES),
+          DESOCUPADES = sum(DESOCUPADES),
+          PEA = sum(ECONOMICAMENTE_ACTIVES)
+        ) %>% 
+        pivot_longer(cols = c(
+          'ECONOMIA_POPULAR',
+          'RESTO_CUENTAPROPISTAS',
+          'ASALARIADOS_REGISTRADOS',
+          'ASALARIADOS_NOREGISTRADOS',
+          'PATRONES',
+          'DESOCUPADES'),
+          names_to = 'OCUPACIONES',
+          values_to = 'PERSONAS') %>% 
+        ungroup() %>%
+        filter(OCUPACIONES %in% c('ECONOMIA_POPULAR',input$ocupaciones)) %>%
+        mutate(PORC_PEA = PERSONAS/PEA*100) %>%
+        mutate(FECHA = as.Date(paste(YEAR,3*TRIMESTER,1,sep='-')))
+    }else{
+      NULL
+    }
   })
   
   output$cantTrabEP_plot <- renderPlot({
-    # La lógica es que construimos un vector grouping_vars y otro aes_plot que nos permita indicar qué variables usar para agrupar (a la hora de construir el dataset resumido, grouping vars) y qué graficar (aes_plot)
-    ocupa_labels <- case_when(
-      input$ocupaciones == 'RESTO_CUENTAPROPISTAS' ~ 'RESTO CP',
-      input$ocupaciones == 'ASALARIADOS_REGISTRADOS' ~ 'Asal R',
-      input$ocupaciones == 'ASALARIADOS_NOREGISTRADOS' ~ 'Asal NR',
-      input$ocupaciones == 'PATRONES' ~ 'Pat',
-      input$ocupaciones == 'DESOCUPADES' ~ 'DesOcup'
-    )
-    names(ocupa_labels) <- input$ocupaciones
-    ocupa_labels <- c(ocupa_labels, 'ECONOMIA_POPULAR' = 'EP')
-    
-    aes_plot <- genera_aes_cantTrabEP_plot(input)
-    
-    
-    dataset_p1() %>% 
-      ggplot(aes_plot) +
-      geom_point() +
-      geom_line() +
-      theme_light() +
-      theme(axis.title = element_text(size=15),
-            axis.text = element_text(size=12)) +
-      scale_color_discrete(labels = function(x) ocupa_labels[x]) +
-      scale_shape(name = 'GÉNERO') +
-      scale_x_date(
-        name = '',
-        date_breaks = '6 months',
-        labels = function(x) {
-          xy <- as.numeric(format(x,'%Y'))
-          xm <- as.numeric(format(x,'%m'))
-          xtri <-case_when(
-            xm <= 3 ~ 'I',
-            xm <= 6 ~ 'II',
-            xm <= 9 ~ 'III',
-            TRUE ~ 'IV'
-          )
-          paste(xy,xtri,sep='-')
-        }
-      ) +
-      scale_y_continuous(name = ifelse(input$usar_porcentaje_pea,'% PEA','Millones de personas')) +
-      theme(axis.text.x = element_text(angle = 90,vjust=0.5))
-    
-
+    if(input$paneles == 'mercado_laboral'){
+      # La lógica es que construimos un vector grouping_vars y otro aes_plot que nos permita indicar qué variables usar para agrupar (a la hora de construir el dataset resumido, grouping vars) y qué graficar (aes_plot)
+      ocupa_labels <- case_when(
+        input$ocupaciones == 'RESTO_CUENTAPROPISTAS' ~ 'RESTO CP',
+        input$ocupaciones == 'ASALARIADOS_REGISTRADOS' ~ 'Asal R',
+        input$ocupaciones == 'ASALARIADOS_NOREGISTRADOS' ~ 'Asal NR',
+        input$ocupaciones == 'PATRONES' ~ 'Pat',
+        input$ocupaciones == 'DESOCUPADES' ~ 'DesOcup'
+      )
+      names(ocupa_labels) <- input$ocupaciones
+      ocupa_labels <- c(ocupa_labels, 'ECONOMIA_POPULAR' = 'EP')
       
-
-    })
+      aes_plot <- genera_aes_cantTrabEP_plot(input)
+      
+      dataset_p1() %>% 
+        ggplot(aes_plot) +
+        geom_point() +
+        geom_line() +
+        theme_light() +
+        theme(axis.title = element_text(size=15),
+              axis.text = element_text(size=12)) +
+        scale_color_discrete(labels = function(x) ocupa_labels[x]) +
+        scale_shape(name = 'GÉNERO') +
+        scale_x_date(
+          name = '',
+          date_breaks = '6 months',
+          labels = function(x) {
+            xy <- as.numeric(format(x,'%Y'))
+            xm <- as.numeric(format(x,'%m'))
+            xtri <-case_when(
+              xm <= 3 ~ 'I',
+              xm <= 6 ~ 'II',
+              xm <= 9 ~ 'III',
+              TRUE ~ 'IV'
+            )
+            paste(xy,xtri,sep='-')
+          }
+        ) +
+        scale_y_continuous(name = ifelse(input$usar_porcentaje_pea,'% PEA','Millones de personas')) +
+        theme(axis.text.x = element_text(angle = 90,vjust=0.5))
+      
+    }
+    
+    
+  })
   
   output$descarga_p1 <- downloadHandler(
     filename = 'datos_pestaña1.csv',
@@ -169,119 +173,121 @@ shinyServer(function(input, output) {
   })
   
   dataset_p2 <- reactive({
-    zonas <- unique(input$zonas_t2)
-    if( length(zonas) == 0 ) 
-      zonas <- individual_03.hoy %>% 
-        select_at(input$variable_zona_t2) %>%
+    if(input$paneles == 'pobreza'){
+      zonas <- unique(input$zonas_t2)
+      if( length(zonas) == 0 ) 
+        zonas <- individual_03.hoy %>% 
+          select_at(input$variable_zona_t2) %>%
+          unique %>% unlist 
+      
+      edades <- unique(input$edades_t2)
+      if( length(edades) == 0 ) 
+        edades <- individual_03.hoy %>% 
+        select_at(paste('EDAD',input$variable_edad_t2,sep='_')) %>%
         unique %>% unlist 
-    
-    edades <- unique(input$edades_t2)
-    if( length(edades) == 0 ) 
-      edades <- individual_03.hoy %>% 
-      select_at(paste('EDAD',input$variable_edad_t2,sep='_')) %>%
-      unique %>% unlist 
-    
-    if(input$tasa_tipo == 'POBREZA'){
-      situaciones <- c('pobre','indigente')
-    }else{
-      situaciones <- c('indigente')
+      
+      if(input$tasa_tipo == 'POBREZA'){
+        situaciones <- c('pobre','indigente')
+      }else{
+        situaciones <- c('indigente')
+      }
+      
+      
+      grouping_vars <- genera_grouping_vars_pobrezaEP_plot(input)
+      
+      individual_03.hoy %>%
+        filter(!is.na(situacion)) %>%
+        filter(
+          YEAR >= input$slider_años_t2[1],
+          YEAR <= input$slider_años_t2[2],
+          across(input$variable_zona_t2, ~.x %in% zonas),
+          across(paste('EDAD',input$variable_edad_t2,sep='_'), ~.x %in% edades)
+        ) %>%
+        group_by(YEAR,TRIMESTER) %>%
+        mutate(POB_TOT = sum(POBLACION_PONDIH,na.rm=TRUE)) %>%
+        mutate(SIT_TOT = sum(POBLACION_PONDIH[situacion %in% situaciones],na.rm=TRUE)) %>%
+        mutate(SIT_TASA = SIT_TOT/POB_TOT) %>%
+        group_by_at(grouping_vars) %>%
+        # summarise(
+        #   tasa_EP = sum(ECONOMIA_POPULAR_PONDIH[situacion %in% situaciones],na.rm=TRUE)/POB_TOT,
+        #   tasa_OCU_NEP = sum(OCUPADES_NO_EP_PONDIH[situacion %in% situaciones],na.rm=TRUE)/POB_TOT,
+        #   tasa_PEI = sum((POBLACION_PONDIH-ECONOMIA_POPULAR_PONDIH-OCUPADES_NO_EP_PONDIH)[situacion %in% situaciones],na.rm=TRUE)/POB_TOT
+        # ) %>%
+        summarise(    
+          across(
+            c(input$ocupaciones_t2,"ECONOMIA_POPULAR_PONDIH"),
+            function(x){
+              sum(x[situacion %in% situaciones],na.rm=TRUE)/POB_TOT
+            } 
+          ),
+          SIT_TASA = first(SIT_TASA)
+        ) %>%
+        mutate(FECHA = as.Date(paste(YEAR,3*TRIMESTER,'1',sep='-'))) %>%
+        pivot_longer(
+          cols =
+            c(input$ocupaciones_t2,"ECONOMIA_POPULAR_PONDIH",'SIT_TASA'),
+          names_to = 'tasa_tipo',
+          values_to = 'tasa'
+        ) %>%
+        # pivot_longer(cols = c(tasa_EP,
+        #                       tasa_OCU_NEP,
+        #                       tasa_PEI),
+        #              names_to = 'tasa_tipo',
+        #              values_to = 'tasa') %>%
+        drop_na() 
     }
-    
-    
-    grouping_vars <- genera_grouping_vars_pobrezaEP_plot(input)
-    
-    individual_03.hoy %>%
-      filter(!is.na(situacion)) %>%
-      filter(
-        YEAR >= input$slider_años_t2[1],
-        YEAR <= input$slider_años_t2[2],
-        across(input$variable_zona_t2, ~.x %in% zonas),
-        across(paste('EDAD',input$variable_edad_t2,sep='_'), ~.x %in% edades)
-      ) %>%
-      group_by(YEAR,TRIMESTER) %>%
-      mutate(POB_TOT = sum(POBLACION_PONDIH,na.rm=TRUE)) %>%
-      mutate(SIT_TOT = sum(POBLACION_PONDIH[situacion %in% situaciones],na.rm=TRUE)) %>%
-      mutate(SIT_TASA = SIT_TOT/POB_TOT) %>%
-      group_by_at(grouping_vars) %>%
-      # summarise(
-      #   tasa_EP = sum(ECONOMIA_POPULAR_PONDIH[situacion %in% situaciones],na.rm=TRUE)/POB_TOT,
-      #   tasa_OCU_NEP = sum(OCUPADES_NO_EP_PONDIH[situacion %in% situaciones],na.rm=TRUE)/POB_TOT,
-      #   tasa_PEI = sum((POBLACION_PONDIH-ECONOMIA_POPULAR_PONDIH-OCUPADES_NO_EP_PONDIH)[situacion %in% situaciones],na.rm=TRUE)/POB_TOT
-      # ) %>%
-      summarise(    
-        across(
-          c(input$ocupaciones_t2,"ECONOMIA_POPULAR_PONDIH"),
-          function(x){
-            sum(x[situacion %in% situaciones],na.rm=TRUE)/POB_TOT
-          } 
-        ),
-        SIT_TASA = first(SIT_TASA)
-      ) %>%
-      mutate(FECHA = as.Date(paste(YEAR,3*TRIMESTER,'1',sep='-'))) %>%
-      pivot_longer(
-        cols =
-          c(input$ocupaciones_t2,"ECONOMIA_POPULAR_PONDIH",'SIT_TASA'),
-        names_to = 'tasa_tipo',
-        values_to = 'tasa'
-      ) %>%
-      # pivot_longer(cols = c(tasa_EP,
-      #                       tasa_OCU_NEP,
-      #                       tasa_PEI),
-      #              names_to = 'tasa_tipo',
-      #              values_to = 'tasa') %>%
-      drop_na() 
-
   })
   
   
   output$pobrezaEP_plot <- renderPlot({
-    # La lógica es que construimos un vector grouping_vars y otro aes_plot que nos permita indicar qué variables usar para agrupar (a la hora de construir el dataset resumido, grouping vars) y qué graficar (aes_plot)
-    aes_plot <- genera_aes_pobrezaEP_plot(input)
-    
-    dataset_p2() %>%
-      filter(is.element(tasa_tipo,c(input$ocupaciones_t2,'ECONOMIA_POPULAR_PONDIH'))) %>%
-      mutate(
-        tasa_tipo = str_replace_all(str_remove(tasa_tipo,"PONDIH"),'_',' ')
-      ) %>%
-      ggplot(aes_plot) +
-      # geom_point() +
-      # geom_line()+
-      geom_area()+
-      scale_fill_brewer(name = 'GRUPO', palette="Set2",na.translate=FALSE) +
-      {
-        dataset_p2() %>%
-          filter(tasa_tipo == 'SIT_TASA') %>%
-          mutate(tasa_tipo = 'POB. GEN.') %>%
-          group_by(YEAR,TRIMESTER) %>%
-          summarise(FECHA=first(FECHA),tasa_tipo = first(tasa_tipo), tasa = first(tasa)) %>%
-          geom_line(data=.,mapping=aes(x=FECHA,y=tasa*100,fill=NA),color='black')
-      } +
-      ylab('Porcentaje') +
-      theme_light() +
-      theme(axis.title = element_text(size=15),
-            axis.text = element_text(size=12)) +
-      theme(axis.text.x = element_text(angle = 90)) +
-      scale_shape(name = 'GÉNERO') +
-      scale_x_date(
-        name = '',
-        date_breaks = '6 months',
-        labels = function(x) {
-          xy <- as.numeric(format(x,'%Y'))
-          xm <- as.numeric(format(x,'%m'))
-          xtri <-case_when(
-            xm <= 3 ~ 'I',
-            xm <= 6 ~ 'II',
-            xm <= 9 ~ 'III',
-            TRUE ~ 'IV'
-          )
-          paste(xy,xtri,sep='-')
-        }
-      ) +
-      labs(title = paste0("Porcentaje de ",input$tasa_tipo, " en zona: ",paste(unlist(ifelse(all(is.null(input$zonas_t2)),'NACIONAL',list(input$zonas_t2))),collapse=',')),caption  = "Citar estos datos como: OCEPP y TDDP (2022). Tablero del nuevo mercado laboral argentino.") + 
-      guides(fill = guide_legend(reverse=TRUE))
+    if(input$paneles == 'pobreza'){
+      # La lógica es que construimos un vector grouping_vars y otro aes_plot que nos permita indicar qué variables usar para agrupar (a la hora de construir el dataset resumido, grouping vars) y qué graficar (aes_plot)
+      aes_plot <- genera_aes_pobrezaEP_plot(input)
       
+      dataset_p2() %>%
+        filter(is.element(tasa_tipo,c(input$ocupaciones_t2,'ECONOMIA_POPULAR_PONDIH'))) %>%
+        mutate(
+          tasa_tipo = str_replace_all(str_remove(tasa_tipo,"PONDIH"),'_',' ')
+        ) %>%
+        ggplot(aes_plot) +
+        # geom_point() +
+        # geom_line()+
+        geom_area()+
+        scale_fill_brewer(name = 'GRUPO', palette="Set2",na.translate=FALSE) +
+        {
+          dataset_p2() %>%
+            filter(tasa_tipo == 'SIT_TASA') %>%
+            mutate(tasa_tipo = 'POB. GEN.') %>%
+            group_by(YEAR,TRIMESTER) %>%
+            summarise(FECHA=first(FECHA),tasa_tipo = first(tasa_tipo), tasa = first(tasa)) %>%
+            geom_line(data=.,mapping=aes(x=FECHA,y=tasa*100,fill=NA),color='black')
+        } +
+        ylab('Porcentaje') +
+        theme_light() +
+        theme(axis.title = element_text(size=15),
+              axis.text = element_text(size=12)) +
+        theme(axis.text.x = element_text(angle = 90)) +
+        scale_shape(name = 'GÉNERO') +
+        scale_x_date(
+          name = '',
+          date_breaks = '6 months',
+          labels = function(x) {
+            xy <- as.numeric(format(x,'%Y'))
+            xm <- as.numeric(format(x,'%m'))
+            xtri <-case_when(
+              xm <= 3 ~ 'I',
+              xm <= 6 ~ 'II',
+              xm <= 9 ~ 'III',
+              TRUE ~ 'IV'
+            )
+            paste(xy,xtri,sep='-')
+          }
+        ) +
+        labs(title = paste0("Porcentaje de ",input$tasa_tipo, " en zona: ",paste(unlist(ifelse(all(is.null(input$zonas_t2)),'NACIONAL',list(input$zonas_t2))),collapse=',')),caption  = "Citar estos datos como: OCEPP y TDDP (2022). Tablero del nuevo mercado laboral argentino.") + 
+        guides(fill = guide_legend(reverse=TRUE))
+    }
   })
-
+  
   # output$barrasEP_plot <- renderPlot({
   #   zonas <- unique(input$zonas_t2)
   #   if( length(zonas) == 0 ) 
@@ -395,7 +401,7 @@ shinyServer(function(input, output) {
     opciones <- dataset_p3() %>% 
       colnames() %>% setdiff(c('lon','lat','geometry',input$variable_zona_t3))
     names(opciones) <- str_replace_all(opciones,'_',' ')
-      
+    
     selectInput(
       inputId = "variable_color_t3",
       label = "Variable para color",
@@ -425,36 +431,37 @@ shinyServer(function(input, output) {
   })
   
   dataset_p3 <- reactive({
-    
-    edades <- unique(input$edades_t3)
-    if( length(edades) == 0 ) 
-      edades <- individual_03.hoy %>% 
-      select_at(paste('EDAD',input$variable_edad_t3,sep='_')) %>%
-      unique %>% unlist 
-    
-
-    left_join(
-      geometrias(),
-      individual_03.hoy %>%
-        mutate(YEAR.TRIM = as.numeric(paste(YEAR,TRIMESTER,sep='.'))) %>%
-        filter(
-          YEAR.TRIM >= as.numeric(input$slider_años_t3[1]),
-          YEAR.TRIM <= as.numeric(input$slider_años_t3[2]),
-          across(paste('EDAD',input$variable_edad_t3,sep='_'), ~.x %in% edades),
-          SEXO %in% unlist(ifelse(input$genero_t3 == 'AMBOS', list(c('VARON','MUJER')), input$genero_t3))
-        ) %>%
-        group_by_at(input$variable_zona_t3) %>%
-        drop_na() %>%
-        summarise(
-          ECONOMIA_POPULAR = mean(ECONOMIA_POPULAR),
-          RESTO_CUENTAPROPISTAS = mean(RESTO_CUENTAPROPISTAS),
-          ASALARIADOS_REGISTRADOS = mean(ASALARIADOS_REGISTRADOS),
-          ASALARIADOS_NOREGISTRADOS = mean(ASALARIADOS_NOREGISTRADOS),
-          PATRONES = mean(PATRONES),
-          DESOCUPADES = mean(DESOCUPADES),
-          PEA = mean(ECONOMICAMENTE_ACTIVES)
-        ),
-      by = input$variable_zona_t3) 
+    if(input$paneles == 'mapa'){
+      edades <- unique(input$edades_t3)
+      if( length(edades) == 0 ) 
+        edades <- individual_03.hoy %>% 
+          select_at(paste('EDAD',input$variable_edad_t3,sep='_')) %>%
+          unique %>% unlist 
+      
+      
+      left_join(
+        geometrias(),
+        individual_03.hoy %>%
+          mutate(YEAR.TRIM = as.numeric(paste(YEAR,TRIMESTER,sep='.'))) %>%
+          filter(
+            YEAR.TRIM >= as.numeric(input$slider_años_t3[1]),
+            YEAR.TRIM <= as.numeric(input$slider_años_t3[2]),
+            across(paste('EDAD',input$variable_edad_t3,sep='_'), ~.x %in% edades),
+            SEXO %in% unlist(ifelse(input$genero_t3 == 'AMBOS', list(c('VARON','MUJER')), input$genero_t3))
+          ) %>%
+          group_by_at(input$variable_zona_t3) %>%
+          drop_na() %>%
+          summarise(
+            ECONOMIA_POPULAR = mean(ECONOMIA_POPULAR),
+            RESTO_CUENTAPROPISTAS = mean(RESTO_CUENTAPROPISTAS),
+            ASALARIADOS_REGISTRADOS = mean(ASALARIADOS_REGISTRADOS),
+            ASALARIADOS_NOREGISTRADOS = mean(ASALARIADOS_NOREGISTRADOS),
+            PATRONES = mean(PATRONES),
+            DESOCUPADES = mean(DESOCUPADES),
+            PEA = mean(ECONOMICAMENTE_ACTIVES)
+          ),
+        by = input$variable_zona_t3) 
+    }
   })
   
   output$mapa_p3 <- renderLeaflet({
@@ -469,31 +476,32 @@ shinyServer(function(input, output) {
     colorNumeric(c('blue','red'),x)
   })
   
-
+  
   observe({
-    x <- as.data.frame(dataset_p3())[[ifelse(is.null(input$variable_color_t3),'ECONOMIA_POPULAR',input$variable_color_t3)]]
-    y <- as.data.frame(dataset_p3())[[ifelse(is.null(input$variable_size_t3),'ECONOMIA_POPULAR',input$variable_size_t3)]]
-    titulo <- ifelse(is.null(input$variable_color_t3),'ECONOMIA POPULAR',str_replace_all(input$variable_color_t3,'_',' ')) 
-    if(input$mapa_pp == 'Circulos' & input$variable_zona_t3 == 'AGLOMERADO'){
-      leafletProxy('mapa_p3') %>%
-        clearShapes() %>%
-        clearMarkers() %>%
-        clearControls() %>%
-        addCircleMarkers(data=as.data.frame(dataset_p3()),lng= ~lon,lat = ~lat,
-                         color = colorPal()(x),
-                         radius = scales::rescale(y,c(1,10))) %>%
-        addLegend('topright',pal = colorPal(),values = x,title = titulo) #%>%
+    if(input$paneles == 'mapa'){
+      x <- as.data.frame(dataset_p3())[[ifelse(is.null(input$variable_color_t3),'ECONOMIA_POPULAR',input$variable_color_t3)]]
+      y <- as.data.frame(dataset_p3())[[ifelse(is.null(input$variable_size_t3),'ECONOMIA_POPULAR',input$variable_size_t3)]]
+      titulo <- ifelse(is.null(input$variable_color_t3),'ECONOMIA POPULAR',str_replace_all(input$variable_color_t3,'_',' ')) 
+      if(input$mapa_pp == 'Circulos' & input$variable_zona_t3 == 'AGLOMERADO'){
+        leafletProxy('mapa_p3') %>%
+          clearShapes() %>%
+          clearMarkers() %>%
+          clearControls() %>%
+          addCircleMarkers(data=as.data.frame(dataset_p3()),lng= ~lon,lat = ~lat,
+                           color = colorPal()(x),
+                           radius = scales::rescale(y,c(1,10))) %>%
+          addLegend('topright',pal = colorPal(),values = x,title = titulo) #%>%
         # addCircleLegend(position='topright',range = scales::rescale(y,c(1,10)), scaling_fun = function(x) x)
         
-    }else{
-      leafletProxy('mapa_p3') %>%
-        clearShapes() %>%
-        clearMarkers() %>%
-        clearControls() %>%
-        addPolygons(data=dataset_p3(),
-                    color = colorPal()(x)) %>%
-        addLegend('topright',pal = colorPal(),values = x,title = titulo) 
+      }else{
+        leafletProxy('mapa_p3') %>%
+          clearShapes() %>%
+          clearMarkers() %>%
+          clearControls() %>%
+          addPolygons(data=dataset_p3(),
+                      color = colorPal()(x)) %>%
+          addLegend('topright',pal = colorPal(),values = x,title = titulo) 
+      }
     }
-
   })
 })

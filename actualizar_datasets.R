@@ -1,0 +1,10 @@
+# Este script simplemente llama a los otros de forma secuencial para actualizar la base que se usa en el tablero.
+# rm(list=ls())
+# gc()
+# source('download_canastas.R')
+rm(list=ls())
+gc()
+source('prepara_ep.R')
+# rm(list=ls())
+# gc()
+# source('prepara_ep_resumen.R')
